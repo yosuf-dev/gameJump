@@ -1,0 +1,182 @@
+{
+  "levels": [
+    {
+      "id": 1,
+      "title": "Green Valley",
+      "difficulty": 5,
+      "worldTheme": "forest",
+      "gameWidth": 420,
+      "gameHeight": 620,
+      "timeLimit": 180,
+      "gravity": 0.45,
+      "jumpPower": 11,
+      "playerSpeed": 5,
+      "platformCount": 12,
+      "platformMinGap": 55,
+      "platformMaxGap": 95,
+      "platformTypes": [
+        {
+          "type": "normal",
+          "chance": 65,
+          "score": 10
+        },
+        {
+          "type": "moving",
+          "chance": 20,
+          "score": 20
+        },
+        {
+          "type": "breakable",
+          "chance": 15,
+          "score": 25
+        }
+      ],
+      "collectibles": [
+        {
+          "type": "coin",
+          "chance": 30,
+          "score": 50
+        },
+        {
+          "type": "spring",
+          "chance": 10,
+          "boost": 16,
+          "score": 30
+        }
+      ],
+      "hazards": [
+        {
+          "type": "spike",
+          "chance": 8,
+          "penalty": 100
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Neon Tower",
+      "difficulty": 7,
+      "worldTheme": "neon",
+      "gameWidth": 420,
+      "gameHeight": 620,
+      "timeLimit": 160,
+      "gravity": 0.5,
+      "jumpPower": 11.5,
+      "playerSpeed": 5.6,
+      "platformCount": 14,
+      "platformMinGap": 65,
+      "platformMaxGap": 110,
+      "platformTypes": [
+        {
+          "type": "normal",
+          "chance": 50,
+          "score": 10
+        },
+        {
+          "type": "moving",
+          "chance": 30,
+          "score": 25
+        },
+        {
+          "type": "breakable",
+          "chance": 20,
+          "score": 35
+        }
+      ],
+      "collectibles": [
+        {
+          "type": "coin",
+          "chance": 25,
+          "score": 60
+        },
+        {
+          "type": "spring",
+          "chance": 12,
+          "boost": 18,
+          "score": 40
+        },
+        {
+          "type": "shield",
+          "chance": 5,
+          "duration": 6,
+          "score": 80
+        }
+      ],
+      "hazards": [
+        {
+          "type": "spike",
+          "chance": 12,
+          "penalty": 120
+        },
+        {
+          "type": "enemy",
+          "chance": 6,
+          "penalty": 200
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Broken Sky",
+      "difficulty": 8,
+      "worldTheme": "sky",
+      "gameWidth": 420,
+      "gameHeight": 620,
+      "timeLimit": 150,
+      "gravity": 0.55,
+      "jumpPower": 12,
+      "playerSpeed": 6,
+      "platformCount": 15,
+      "platformMinGap": 75,
+      "platformMaxGap": 120,
+      "platformTypes": [
+        {
+          "type": "normal",
+          "chance": 40,
+          "score": 10
+        },
+        {
+          "type": "moving",
+          "chance": 35,
+          "score": 30
+        },
+        {
+          "type": "breakable",
+          "chance": 25,
+          "score": 40
+        }
+      ],
+      "collectibles": [
+        {
+          "type": "coin",
+          "chance": 25,
+          "score": 70
+        },
+        {
+          "type": "spring",
+          "chance": 15,
+          "boost": 20,
+          "score": 50
+        },
+        {
+          "type": "shield",
+          "chance": 6,
+          "duration": 5,
+          "score": 90
+        }
+      ],
+      "hazards": [
+        {
+          "type": "spike",
+          "chance": 15,
+          "penalty": 130
+        },
+        {
+          "type": "enemy",
+          "chance": 8,
+          "penalty": 220
+        }
+      ]
+    }
+  ]
+}

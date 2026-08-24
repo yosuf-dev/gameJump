@@ -1,0 +1,21 @@
+:root{
+  --color-1: orange;
+  --border-r: 10px;
+  --shadow: 0 0 5px rgba(161, 161, 161, 0.519);
+}
+
+*,*::before,*::after{
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body{
+  font-family: sans-serif;
+}
+
+.center{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
