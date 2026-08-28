@@ -19,7 +19,30 @@ const platformTypes = ref([])
 // const emitEndGmae = defineEmits(['endGame'])
 const parentRef = ref(null)
 const parentBottom = ref(0)
-console.table(level);
+const finishLineRef = ref(null)
+const objectGame = ref({
+      "playerName": null,
+      "game": "Vertical Jump Challenge",
+      "levelId": level.id,
+      "levelTitle": level.title,
+      "difficulty": level.difficulty,
+      "score": score.value,
+      "height": 0,
+      "coins": null,
+      "usedSprings": 2,
+      "platformHits": {
+        "normal": 0,
+        "moving": 0,
+        "breakable": 0
+      },
+      "timeSpent": null,
+      "timeRemaining": 38,
+      "endReason": "fall",
+      "createdAt": "2026-08-04T12:30:00.000Z"
+    }
+)
+// console.table(level);
+// console.table(objectGame.value)
 
 //درست کردن تایمر
 
@@ -70,6 +93,7 @@ document.addEventListener('keydown', (e) => {
 //درست کردن پرش
 
 const jump = () => {
+  if (!gameStart.value) return
   jumpBol.value = true;
   const jumpPower = ref(0)
   const intervalJump = setInterval(() => {
@@ -94,39 +118,56 @@ const gravity = () => {
     if (jumpBol.value === true) {
       clearInterval(intervalGravity)
     }
-  }, 10)
+  }, 5)
 }
 
 //مدام رندر شود
 
-setInterval(() => {
-  //برخورد با زمین
-  if (earthRef.value.getBoundingClientRect().top + 10 <= caracterRef.value.getBoundingClientRect().bottom) {
+const gameLoop = () => {
+  // برخورد با زمین
+  if (earthRef.value.getBoundingClientRect().top + 10 <= caracterRef.value.getBoundingClientRect().bottom && !jumpBol.value) {
     jump()
   }
 
-  //برخورد با دیوار
-
+  // برخورد با دیوار
   if (mainRef.value.getBoundingClientRect().left >= caracterRef.value.getBoundingClientRect().left) {
     gameEnd.value = true
   }
+
   if (mainRef.value.getBoundingClientRect().right <= caracterRef.value.getBoundingClientRect().right) {
     gameEnd.value = true
   }
+
   if (parentRef.value.getBoundingClientRect().bottom <= caracterRef.value.getBoundingClientRect().bottom) {
     gameEnd.value = true
   }
 
-  //درست کردن حرکت صفحه
-
-  if (parentRef.value.getBoundingClientRect().top + 200 >= caracterRef.value.getBoundingClientRect().top) {
-    parentBottom.value += parentRef.value.getBoundingClientRect().top + 200 - caracterRef.value.getBoundingClientRect().top
+  // خط پایان
+  if (finishLineRef.value.getBoundingClientRect().bottom >= caracterRef.value.getBoundingClientRect().bottom) {
+    gameEnd.value = true
   }
-}, 100)
+
+  if (!gameEnd.value) {
+    requestAnimationFrame(gameLoop)
+  }
+}
+
+requestAnimationFrame(gameLoop)
+
+// حرکت صفحه
+
+setInterval(()=>{if (parentRef.value.getBoundingClientRect().top + 200 >= caracterRef.value.getBoundingClientRect().top) {
+  parentBottom.value +=
+      parentRef.value.getBoundingClientRect().top +
+      200 -
+      caracterRef.value.getBoundingClientRect().top;
+  score.value += 1
+}
+},100)
 
 //درست کردن سکو ها
 
-for (let i = 1; i <= level.platformCount; i++) {
+for (let i = 1; i <= (level.platformCount+100); i++) {
   const randomPlatForm = Math.floor(Math.random() * 100) + 1
   if (randomPlatForm <= level.platformTypes[0].chance) {
     platformTypes.value.push('normal')
@@ -144,9 +185,10 @@ const handleNormal = (e) => {
       e.value.getBoundingClientRect().left < caracterRef.value.getBoundingClientRect().right &&
       e.value.getBoundingClientRect().right > caracterRef.value.getBoundingClientRect().left &&
       e.value.getBoundingClientRect().top < caracterRef.value.getBoundingClientRect().bottom &&
-      e.value.getBoundingClientRect().bottom > caracterRef.value.getBoundingClientRect().bottom;
+      e.value.getBoundingClientRect().bottom > caracterRef.value.getBoundingClientRect().bottom && !jumpBol.value;
   if (isColliding) {
     jump()
+    score.value += level.platformTypes[0].score
   }
 }
 const handleMoving = (e) => {
@@ -154,9 +196,10 @@ const handleMoving = (e) => {
       e.value.getBoundingClientRect().left < caracterRef.value.getBoundingClientRect().right &&
       e.value.getBoundingClientRect().right > caracterRef.value.getBoundingClientRect().left &&
       e.value.getBoundingClientRect().top < caracterRef.value.getBoundingClientRect().bottom &&
-      e.value.getBoundingClientRect().bottom > caracterRef.value.getBoundingClientRect().bottom;
+      e.value.getBoundingClientRect().bottom > caracterRef.value.getBoundingClientRect().bottom && !jumpBol.value;
   if (isColliding) {
     jump()
+    score.value += level.platformTypes[1].score
   }
 }
 const handleBreakable = (e) => {
@@ -165,9 +208,10 @@ const handleBreakable = (e) => {
         e[0].value.getBoundingClientRect().left < caracterRef.value.getBoundingClientRect().right &&
         e[0].value.getBoundingClientRect().right > caracterRef.value.getBoundingClientRect().left &&
         e[0].value.getBoundingClientRect().top < caracterRef.value.getBoundingClientRect().bottom &&
-        e[0].value.getBoundingClientRect().bottom > caracterRef.value.getBoundingClientRect().bottom;
+        e[0].value.getBoundingClientRect().bottom > caracterRef.value.getBoundingClientRect().bottom && !jumpBol.value;
     if (isColliding) {
       jump()
+      score.value += level.platformTypes[2].score
     }
   }
 }
@@ -220,11 +264,11 @@ const handleBtnRight = (x) => {
         <span>{{ userName }}</span>
       </header>
       <div ref="mainRef" class="main" :style="{bottom: `-${parentBottom}px`}">
-
+        <span ref="finishLineRef" class="finishLine"></span>
         <div v-for="(value, index) in platformTypes" :key="index">
           <Normal v-if="value === 'normal'" @elementRef="handleNormal($event)"/>
           <Moving v-else-if="value === 'moving'" @elementRef="handleMoving($event)" :mainRef="mainRef"/>
-          <Breakable v-else @elementRef="handleBreakable($event)" :caracterRef="caracterRef"/>
+          <Breakable v-else @elementRef="handleBreakable($event)" :caracterRef="caracterRef" :jumpBol="jumpBol"/>
         </div>
 
         <span ref="caracterRef" class="caracter"
@@ -410,6 +454,26 @@ header button {
     font-size: 14px;
     margin-top: 20px;
   }
+}
+
+.finishLine {
+  width: 100%;
+  height: 30px;
+
+  background: linear-gradient(45deg,
+  #000 25%,
+  transparent 25%,
+  transparent 75%,
+  #000 75%),
+  linear-gradient(45deg,
+      #000 25%,
+      transparent 25%,
+      transparent 75%,
+      #000 75%);
+
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  background-color: #fff;
 }
 
 @media screen and (max-width: 500px) {
