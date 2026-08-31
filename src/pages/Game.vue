@@ -20,29 +20,29 @@ const platformTypes = ref([])
 const parentRef = ref(null)
 const parentBottom = ref(0)
 const finishLineRef = ref(null)
+const loading = ref(false)
 const objectGame = ref({
-      "playerName": null,
+      "playerName": localStorage.getItem('userName'),
       "game": "Vertical Jump Challenge",
       "levelId": level.id,
       "levelTitle": level.title,
       "difficulty": level.difficulty,
       "score": score.value,
       "height": 0,
-      "coins": null,
-      "usedSprings": 2,
+      "coins": 0,
+      "usedSprings": 0,
       "platformHits": {
         "normal": 0,
         "moving": 0,
         "breakable": 0
       },
       "timeSpent": null,
-      "timeRemaining": 38,
-      "endReason": "fall",
-      "createdAt": "2026-08-04T12:30:00.000Z"
+      "timeRemaining": null,
+      "endReason": "fail",
+      "createdAt": null
     }
 )
 // console.table(level);
-// console.table(objectGame.value)
 
 //درست کردن تایمر
 
@@ -94,6 +94,7 @@ document.addEventListener('keydown', (e) => {
 
 const jump = () => {
   if (!gameStart.value) return
+  if (gameEnd.value) return
   jumpBol.value = true;
   const jumpPower = ref(0)
   const intervalJump = setInterval(() => {
@@ -113,6 +114,7 @@ const jump = () => {
 //گرانش
 
 const gravity = () => {
+  if (gameEnd.value) return
   const intervalGravity = setInterval(() => {
     caracterBottom.value -= level.gravity
     if (jumpBol.value === true) {
@@ -144,6 +146,7 @@ const gameLoop = () => {
 
   // خط پایان
   if (finishLineRef.value.getBoundingClientRect().bottom >= caracterRef.value.getBoundingClientRect().bottom) {
+    objectGame.value.endReason = 'victor'
     gameEnd.value = true
   }
 
@@ -156,18 +159,19 @@ requestAnimationFrame(gameLoop)
 
 // حرکت صفحه
 
-setInterval(()=>{if (parentRef.value.getBoundingClientRect().top + 200 >= caracterRef.value.getBoundingClientRect().top) {
-  parentBottom.value +=
-      parentRef.value.getBoundingClientRect().top +
-      200 -
-      caracterRef.value.getBoundingClientRect().top;
-  score.value += 1
-}
-},100)
+setInterval(() => {
+  if (parentRef.value.getBoundingClientRect().top + 200 >= caracterRef.value.getBoundingClientRect().top) {
+    parentBottom.value +=
+        parentRef.value.getBoundingClientRect().top +
+        200 -
+        caracterRef.value.getBoundingClientRect().top;
+    score.value += 1
+  }
+}, 100)
 
 //درست کردن سکو ها
 
-for (let i = 1; i <= (level.platformCount+100); i++) {
+for (let i = 1; i <= (level.platformCount + 100); i++) {
   const randomPlatForm = Math.floor(Math.random() * 100) + 1
   if (randomPlatForm <= level.platformTypes[0].chance) {
     platformTypes.value.push('normal')
@@ -189,6 +193,7 @@ const handleNormal = (e) => {
   if (isColliding) {
     jump()
     score.value += level.platformTypes[0].score
+    objectGame.value.platformHits.normal += 1
   }
 }
 const handleMoving = (e) => {
@@ -200,6 +205,7 @@ const handleMoving = (e) => {
   if (isColliding) {
     jump()
     score.value += level.platformTypes[1].score
+    objectGame.value.platformHits.moving += 1
   }
 }
 const handleBreakable = (e) => {
@@ -212,6 +218,7 @@ const handleBreakable = (e) => {
     if (isColliding) {
       jump()
       score.value += level.platformTypes[2].score
+      objectGame.value.platformHits.breakable += 1
     }
   }
 }
@@ -252,7 +259,43 @@ const handleBtnRight = (x) => {
   }
 };
 
+//پایان بازی
 
+watch(gameEnd, () => {
+  if (gameEnd.value === true) {
+    objectGame.value.usedSprings = timer.value
+    objectGame.value.timeSpent = level.timeLimit - timer.value
+    objectGame.value.height = mainRef.value.getBoundingClientRect().height
+    objectGame.value.createdAt = new Date().toISOString()
+    console.table(objectGame.value)
+    console.log("اجرا شد")
+    sendData()
+  }
+})
+
+//ارسال اطلاعات به api
+async function sendData() {
+  loading.value = true;
+  try {
+    const response = await fetch("https://jsonplaceholder.typicode.com/posts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(objectGame.value)
+    });
+
+    const data = await response.json();
+    console.log(data);
+    alert("اطلاعات با موافقیت ارسال شد")
+  } catch (error) {
+    console.log("Error:", error);
+    window.alert("مشکل در ارسال اطلاعات!!!")
+  } finally {
+    console.log("Loading finished");
+    loading.value = false
+  }
+}
 </script>
 <template>
   <div class="container center">
@@ -307,8 +350,17 @@ const handleBtnRight = (x) => {
     </button>
   </div>
   <div v-if="gameEnd" class="endGame center">
-    <h1>پایان بازی</h1>
+    <h1>{{objectGame.endReason === 'fail'? "شما باختید" : "شما پیروز شدید"}}</h1>
+    <div style="display: flex; flex-direction: column; gap: 10px;margin-top: 20px;margin-right: -50px">
+      <span>امتیاز نهایی: {{ score }}</span>
+      <span>زمان صرف شده: {{ objectGame.timeSpent }}</span>
+      <span>ارتفاع: {{ objectGame.height }}</span>
+    </div>
     <button @click="handleRestart">شروع دوباره بازی</button>
+  </div>
+  <div v-if="loading" class="loading">
+    <p>در حال ارسال اطلاعات</p>
+    <div class="loader"></div>
   </div>
 </template>
 <style scoped>
@@ -474,6 +526,71 @@ header button {
   background-size: 20px 20px;
   background-position: 0 0, 10px 10px;
   background-color: #fff;
+}
+
+.loader {
+  width: 150px;
+  height: 100px;
+  padding: 10px;
+  box-sizing: border-box;
+  display: grid;
+  background: #fff;
+  filter: blur(4px) contrast(10) hue-rotate(240deg);
+  mix-blend-mode: darken;
+}
+
+.loader:before {
+  content: "";
+  grid-area: 1/1;
+  margin: 30px 0;
+  border-radius: 100px;
+  background: #00ffff;
+}
+
+.loader:after {
+  content: "";
+  grid-area: 1/1;
+  height: 35px;
+  width: 35px;
+  margin: auto;
+  border-radius: 50%;
+  background: #00ffff;
+  animation: l5 2s infinite linear;
+}
+
+@keyframes l5 {
+  0% {
+    transform: translate(30px)
+  }
+  25% {
+    transform: translate(0)
+  }
+  50% {
+    transform: translate(-30px)
+  }
+  75% {
+    transform: translate(0)
+  }
+  100% {
+    transform: translate(30px)
+  }
+}
+
+.loading {
+  position: absolute;
+  inset: 0;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 9999;
+
+  & p {
+    margin-bottom: -20px;
+    color: var(--color-1);
+    font-weight: bold;
+  }
 }
 
 @media screen and (max-width: 500px) {
