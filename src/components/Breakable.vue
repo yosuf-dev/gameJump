@@ -3,7 +3,7 @@ import {inject, ref} from "vue";
 
 const random = Math.floor(Math.random() * 360)
 const level = inject('level')
-const randomGap = (Math.floor(Math.random() * (level.platformMaxGap - level.platformMinGap)) + level.platformMinGap) / 2
+const randomGap = (Math.floor(Math.random() * (level.platformMaxGap - level.platformMinGap)) + level.platformMinGap)/4
 const emits = defineEmits(['elementRef'])
 const breakableBol = ref(false)
 const elementRef = ref(null)

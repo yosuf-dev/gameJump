@@ -3,6 +3,11 @@ import {inject, onMounted, ref, watch} from 'vue';
 import Normal from "../components/Normal.vue";
 import Moving from "../components/Moving.vue";
 import Breakable from "../components/Breakable.vue";
+import Coin from "../components/Coin.vue";
+import Enemy from "../components/Enemy.vue";
+import Shield from "../components/Shield.vue";
+import Spike from "../components/Spike.vue";
+import Spring from "../components/Spring.vue";
 
 const level = inject('level')
 const timer = ref(level.timeLimit)
@@ -42,7 +47,6 @@ const objectGame = ref({
       "createdAt": null
     }
 )
-// console.table(level);
 
 //درست کردن تایمر
 
@@ -116,7 +120,7 @@ const jump = () => {
 const gravity = () => {
   if (gameEnd.value) return
   const intervalGravity = setInterval(() => {
-    caracterBottom.value -= level.gravity
+    caracterBottom.value -= level.gravity * 1.5
     if (jumpBol.value === true) {
       clearInterval(intervalGravity)
     }
@@ -172,13 +176,15 @@ setInterval(() => {
 //درست کردن سکو ها
 
 for (let i = 1; i <= (level.platformCount + 100); i++) {
-  const randomPlatForm = Math.floor(Math.random() * 100) + 1
+  const randomPlatForm = Math.floor(Math.random() * 104) + 1
   if (randomPlatForm <= level.platformTypes[0].chance) {
     platformTypes.value.push('normal')
   } else if (randomPlatForm <= level.platformTypes[1].chance + level.platformTypes[0].chance) {
     platformTypes.value.push('moving')
-  } else {
+  } else if (randomPlatForm <= level.platformTypes[1].chance + level.platformTypes[0].chance + level.platformTypes[2].chance){
     platformTypes.value.push('breakable')
+  }else {
+    platformTypes.value.push('enemy')
   }
 }
 
@@ -220,6 +226,16 @@ const handleBreakable = (e) => {
       score.value += level.platformTypes[2].score
       objectGame.value.platformHits.breakable += 1
     }
+  }
+}
+const handleEnemy = (e) => {
+  const isColliding =
+      e.value.getBoundingClientRect().left + 5 < caracterRef.value.getBoundingClientRect().right &&
+      e.value.getBoundingClientRect().right - 5 > caracterRef.value.getBoundingClientRect().left &&
+      e.value.getBoundingClientRect().top + 10 < caracterRef.value.getBoundingClientRect().bottom &&
+      e.value.getBoundingClientRect().bottom - 20 > caracterRef.value.getBoundingClientRect().top;
+  if (isColliding) {
+    gameEnd.value = true;
   }
 }
 
@@ -296,6 +312,8 @@ async function sendData() {
     loading.value = false
   }
 }
+
+console.log(platformTypes.value)
 </script>
 <template>
   <div class="container center">
@@ -311,7 +329,8 @@ async function sendData() {
         <div v-for="(value, index) in platformTypes" :key="index">
           <Normal v-if="value === 'normal'" @elementRef="handleNormal($event)"/>
           <Moving v-else-if="value === 'moving'" @elementRef="handleMoving($event)" :mainRef="mainRef"/>
-          <Breakable v-else @elementRef="handleBreakable($event)" :caracterRef="caracterRef" :jumpBol="jumpBol"/>
+          <Breakable v-else-if="value === 'breakable'" @elementRef="handleBreakable($event)" :caracterRef="caracterRef" :jumpBol="jumpBol"/>
+          <Enemy v-else-if="value === 'enemy'" @elementRef="handleEnemy($event)" :mainRef="mainRef"/>
         </div>
 
         <span ref="caracterRef" class="caracter"
